@@ -1,7 +1,7 @@
 import SearchForm from '@/components/SearchForm';
 import StartupCard, { StartupTypeCard } from '@/components/StartupCard';
-import { client } from '@/sanity/lib/client';
 import { STARTUPS_QUERY } from '@/sanity/lib/queries';
+import { sanityFetch, SanityLive } from '@/sanity/lib/live';
 
 export default async function Home({
   searchParams,
@@ -9,22 +9,7 @@ export default async function Home({
   searchParams: Promise<{ query: string }>;
 }) {
   const query = (await searchParams).query;
-
-  const posts = await client.fetch(STARTUPS_QUERY);
-
-  // const posts = [
-  //   {
-  //     _createdAt: new Date(),
-  //     views: 55,
-  //     author: { _id: 1, name: 'Joko' },
-  //     _id: 1,
-  //     description: 'This is a description',
-  //     image:
-  //       'https://plus.unsplash.com/premium_photo-1677094310899-02303289cadf?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  //     category: 'Robots',
-  //     title: 'We Robots',
-  //   },
-  // ];
+  const { data: posts } = await sanityFetch({ query: STARTUPS_QUERY });
 
   return (
     <>
@@ -56,6 +41,8 @@ export default async function Home({
           )}
         </ul>
       </section>
+
+      <SanityLive />
     </>
   );
 }
