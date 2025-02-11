@@ -1,7 +1,10 @@
 import { Suspense } from 'react';
 import { formatDate } from '@/lib/utils';
 import { client } from '@/sanity/lib/client';
-import { STARTUP_BY_ID_QUERY } from '@/sanity/lib/queries';
+import {
+  PLAYLIST_BY_SLUG_QUERY,
+  STARTUP_BY_ID_QUERY,
+} from '@/sanity/lib/queries';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -9,6 +12,7 @@ import Link from 'next/link';
 import markdonwit from 'markdown-it';
 import { Skeleton } from '@/components/ui/skeleton';
 import View from '@/components/View';
+import StartupCard, { StartupTypeCard } from '@/components/StartupCard';
 
 const md = markdonwit();
 
@@ -17,7 +21,12 @@ export const experimental_ppr = true;
 const page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const id = (await params).id;
 
-  const post = await client.fetch(STARTUP_BY_ID_QUERY, { id });
+  const [post, { select: editorPosts }] = await Promise.all([
+    client.fetch(STARTUP_BY_ID_QUERY, { id }),
+    client.fetch(PLAYLIST_BY_SLUG_QUERY, {
+      slug: 'editor-picks',
+    }),
+  ]);
 
   if (!post) return notFound();
 
@@ -78,12 +87,22 @@ const page = async ({ params }: { params: Promise<{ id: string }> }) => {
 
         <hr className="divider" />
 
-        {/* EDITOR SELECTED STARTUPS */}
-      </section>
+        {editorPosts?.length > 0 && (
+          <div className="mx-auto max-w-4xl">
+            <p className="text-30-semibold">Editor Picks</p>
 
-      <Suspense fallback={<Skeleton className="view_skeleton" />}>
-        <View id={id} />
-      </Suspense>
+            <ul className="card_grid-sm mt-7">
+              {editorPosts.map((post: StartupTypeCard, i: number) => (
+                <StartupCard key={i} post={post} />
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <Suspense fallback={<Skeleton className="view_skeleton" />}>
+          <View id={id} />
+        </Suspense>
+      </section>
     </>
   );
 };
